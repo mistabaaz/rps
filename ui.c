@@ -169,15 +169,23 @@ int run() {
     darray_append(box->elements, "right_art", right_loc, right_loc, NULL);
 
 
-    char cc[name_len + 20];
-    char chosed[9];
-    char win[name_len + 5];
+    char *cc = malloc( name_len + 20 );
+    char *chosed = malloc(9);
+    char *win = malloc(name_len + 5);
     while (1) {
         // ask for input char 1 2 3 r p s q
         #ifdef _WIN32
         int c = _getch(); // instead disable canonical mode
         #endif
         
+        int cleaned = darray_get_pos(box->elements, "win");
+        if (cleaned != -1) {
+            element_fill(box, "left_art", ' ');
+            element_fill(box, "right_art", ' ');
+            element_fill(box, "chosed", ' ');
+            element_fill(box, "win", ' ');
+        }
+
         int user;
         if ( c == (int) 'r' || c == (int) '1') {
             // char chosen[] = "you choosed rps!";
@@ -192,6 +200,9 @@ int run() {
             free(Player1);
             free(Player2);
             free_arts(arts);
+
+            free(cc); free(chosed); free(win);
+
             int r = ud_json_file(box->elements);
             free_box(box);
             return 0;
@@ -211,7 +222,7 @@ int run() {
 
         // everything okay so far try element fill
 
-        /**
+        
         if (comp == 0) {
             strcpy(chosed, "rock");
         } else if (comp == 1) {
@@ -241,13 +252,13 @@ int run() {
             strcpy(win, "TIE");
         }
 
-        int win_loc[2][2] = { {midx - 1 - ( strlen(win) / 2 ), logo_len + 8 + art_height + 3}, {midx - 1 + ( strlen(win) / 2 ), logo_len + 8 + art_height + 3} };
+        int win_loc[2][2] = { {midx - 1 - ( strlen(win) / 2 ), logo_len + 8 + art_height + 3}, {midx + ( strlen(win) / 2 ), logo_len + 8 + art_height + 3} };
         write_line(box, win_loc[0][0], win_loc[1][0], win_loc[0][1], win);
         p = darray_get_pos(box->elements, "win");
         if ( p == -1 )  {
-            darray_append(box->elements, "win", chosed_loc, chosed_loc, NULL);
+            darray_append(box->elements, "win", win_loc, win_loc, NULL);
         } else {
-            darray_update_loc_by_name(box->elements, "win", chosed_loc, chosed_loc);
+            darray_update_loc_by_name(box->elements, "win", win_loc, win_loc);
         }
         
 
@@ -257,13 +268,7 @@ int run() {
         // make score update
         // and make dynamic stretch
         // now clearing what written
-        // element_fill(box, "left_art", ' ');
-        // element_fill(box, "right_art", ' ');
-        // element_fill(box, "chosed", ' ');
-        // element_fill(box, "win", ' ');
 
-        **/
-        print_box(box);
     }
 
     // darray_show_json(box->elements);
@@ -1230,6 +1235,8 @@ void element_fill(xy_plane *box, char *name, char c) {
         return;
     }
     
+    darray_get(box->elements, pos, bloc, loc, NULL);
+
     int len = bloc[1][0] - bloc[0][0] + 1;
     char str[len + 1];
     for (int i = 0; i < len; i++) {
@@ -1237,9 +1244,8 @@ void element_fill(xy_plane *box, char *name, char c) {
     }
     str[len] = '\0';
 
-    darray_get(box->elements, pos, bloc, loc, NULL);
     for (int j = bloc[0][1]; j < bloc[1][1] + 1; j++) {
-        write_line(box, bloc[0][0], bloc[1][0], j, str);
+        write_line(box, bloc[0][0], bloc[1][0] + 1, j, str);
     }
 }
 
