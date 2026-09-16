@@ -35,5 +35,6 @@ void decolor(xy_plane *box, int pos_x1, int pos_x2, int pos_y);
 void decolor_by_name(xy_plane *box, char *name);
 int enable_terminal_settings(int size_x, int size_y);
 void element_fill(xy_plane *box, char *name, char c);
+int calculate_increment(xy_plane *box, int pos_y, int pos_x1); 
 
 #endif

@@ -40,7 +40,7 @@ int result[3][3] = {
     {0, 1, 2}  // 2 means draw
 };
 
-
+int score[2] = {0, 0};
 
 // todo add ucode properly... then color writer > then move xy > then ascii arts
 // why element already occupied occurs? bec apos is i
@@ -74,7 +74,8 @@ int run() {
 
     int nbox_bloc[2][2] = { {*(box->len_x + 0) - 23, 2}, {*(box->len_x + 0) - 2, 5} };  // embeded box coordinates
     // int nbox_bloc[2][2] = { {100-23, 2}, {99, 5}};
-    int name_len = nbox_bloc[1][0] - nbox_bloc[0][0] - 1;  // here that is 20
+    int name_len = nbox_bloc[1][0] - nbox_bloc[0][0] - 1 - 3;  // here that is 20 - 3
+    // -3 for score
 
     if (name_len < strlen("Computer")) {
         printf("name_len is too small !!");
@@ -170,8 +171,9 @@ int run() {
 
 
     char *cc = malloc( name_len + 20 );
-    char *chosed = malloc(9);
-    char *win = malloc(name_len + 5);
+    char *chosed = malloc(9); // for computer choice
+    char *win = malloc(name_len + 5); // for winner name
+    char *scr = malloc(3); // for scorecard
     while (1) {
         // ask for input char 1 2 3 r p s q
         #ifdef _WIN32
@@ -187,15 +189,15 @@ int run() {
         }
 
         int user;
-        if ( c == (int) 'r' || c == (int) '1') {
+        if ( c == 'r' || c == '1') {
             // char chosen[] = "you choosed rps!";
             // write_line(box, padding, strlen(chosen), logo_len + 5, chosen);
             user = 0;
-        } else if ( c == (int) 'p' || c == (int) '2') {
+        } else if ( c == 'p' || c == '2') {
             user = 1;
-        } else if (c == (int) 's' || c == (int) '3') {
+        } else if (c == 's' || c == '3') {
             user = 2;
-        } else if (c == (int) 'q' || c == (int) '0') {
+        } else if (c == 'q' || c == '0') {
             // exit
             free(Player1);
             free(Player2);
@@ -209,6 +211,22 @@ int run() {
         }
 
         int comp = comp_choice();
+        if (result[user][comp] == 0) {
+            score[1]++;
+        } else if ( result[user][comp] == 1 ) {
+            score[0]++;
+        }
+
+        darray_get_loc_by_name(box->elements, "name_box", nbox_bloc, nbox_loc);
+        int inc1 = calculate_increment(box, nbox_loc[0][1], nbox_loc[1][0]);
+        int inc2 = calculate_increment(box, nbox_loc[1][1], nbox_loc[1][0]);
+
+        snprintf(scr, 2, "%d", score[0]);
+        write_line(box, nbox_loc[1][0] + inc1 - 2, nbox_loc[1][0] + inc1, nbox_loc[0][1], scr);
+
+        snprintf(scr, 2, "%d", score[1]);
+        write_line(box, nbox_loc[1][0] + inc2 - 2, nbox_loc[1][0] + inc2, nbox_loc[1][1], scr);
+
         struct art_couple a;
         a = get_art(user, comp, arts);
         
@@ -264,7 +282,7 @@ int run() {
 
         print_box(box);
 
-        // fix clearing what written
+        // fix clearing what written [done]
         // make score update
         // and make dynamic stretch
         // now clearing what written
@@ -583,6 +601,9 @@ void write_line(xy_plane *box, int pos_x1, int pos_x2, int pos_y, char *string) 
     // write the line till \n or given size
     char *temp_row;
 
+    // check if there is unicode before y
+    int inc = calculate_increment(box, pos_y, pos_x1);
+
     if ((pos_y < 1) || (pos_y > box->len_y)) {
         printf("\ncoordinates lies outside the box!\n");
         printf("when writing this line \"%s\"\n", string);
@@ -592,7 +613,7 @@ void write_line(xy_plane *box, int pos_x1, int pos_x2, int pos_y, char *string) 
         printf("coordinates lies outside the box\n");
         return;
     }
-    if ((pos_x1 < 1) || (pos_x2 > *(box->len_x + pos_y))) {
+    if ((pos_x1 < 1) || (pos_x2 > *(box->len_x + pos_y) + inc)) {
         printf("\ncoordinates lies outside the box!\n");
         printf("when writing this line \"%s\"\n", string);
         return;
@@ -943,7 +964,7 @@ also update darray->loc of element when unicode or color (done)
 */
 
 int calculate_increment(xy_plane *box, int pos_y, int pos_x1) {
-    // problem is ucode temp is 0x0
+    // calculate extra size (padding) due to unicode
     int inc = 0;
     int bloc[2][2];
     int loc[2][2];
