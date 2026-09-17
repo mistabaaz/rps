@@ -175,6 +175,12 @@ int run() {
     char *win = malloc(name_len + 5); // for winner name
     char *scr = malloc(3); // for scorecard
     while (1) {
+        // trying to move cursor to ask position
+        int up_down = 1 * (box->len_y - choice_loc[0][1] + 1);
+        int right_left = 1 * ( padding + strlen(ask) );
+        // printf("updown: %d, right_left: %d\n", up_down, right_left);
+        move_cursor(up_down, right_left);
+        
         // ask for input char 1 2 3 r p s q
         #ifdef _WIN32
         int c = _getch(); // instead disable canonical mode
@@ -675,11 +681,11 @@ void move_cursor(int up_down, int right_left) {
 
     if (up_down != 0) {
         printf("\x1b[%d%c", up_down, x);
-        printf("%d%c", up_down, x);
+        // printf("%d%c", up_down, x);
     }
     if (right_left != 0) {
         printf("\x1b[%d%c", right_left, y);
-        printf("%d%c", right_left, y);
+        // printf("%d%c", right_left, y);
     }
 }
 
