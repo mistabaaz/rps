@@ -431,6 +431,27 @@ int enable_terminal_settings(int size_x, int size_y) {
     // char change_size[50];
     // sprintf(change_size ,"mode CON: COLS=%d LINES=%d", size_x + 2, size_y + 4);
     
+    // change cursor style
+    CONSOLE_CURSOR_INFO cci;
+    GetConsoleCursorInfo(hOut, &cci);
+    // printf("Current %%filled %d, visibility %d\n", cci.dwSize, cci.bVisible);
+
+    cci.dwSize = 100;
+    cci.bVisible = 1;
+    SetConsoleCursorInfo(hOut, &cci);
+
+    // initial default set by windows is 500ms
+    int blink_rate = GetCaretBlinkTime();
+    // printf("current cursor blink rate: %d\n", blink_rate);
+    // SetCaretBlinkTime(500);
+
+    // fixed cursor blinking
+    ShowWindow(handle, SW_MINIMIZE);
+    ShowWindow(handle, SW_NORMAL);
+
+    // another way to change cursor style
+    // printf("\x1b[1 q");
+
     ReleaseDC(NULL, hDC);
     #endif
     return 0;
