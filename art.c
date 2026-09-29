@@ -1,6 +1,6 @@
-#include <stdlib.h>
-#include <string.h>
-#include "art.h"
+#include <stdlib.h>  // for malloc()
+#include <string.h> // for strlen()
+#include "art.h"  // for art_width and l_rock etc.
 
 int art_width = 19;
 int art_height = 7;

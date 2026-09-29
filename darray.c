@@ -77,7 +77,7 @@ void darray_gen_space(darray *array, int size) {
     return;
 }
 
-// gen_xy(), get_xy(), set_xy() functions needed
+// gen_xy(), get_xy(), set_xy() functions needed [done]
 
 void darray_set(darray *array, int pos, char *element, int bloc[2][2], int loc[2][2], ucode *uc) {
     // set value to unused darray space

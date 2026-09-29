@@ -16,9 +16,9 @@ one year gone but stil can't complete it due to inconsistency
 #include <time.h>   // time()
 
 #ifdef _WIN32
-#include <windows.h>
-#include <wchar.h>
-#include <conio.h>
+#include <windows.h>  // for many internal apis
+// #include <wchar.h>
+#include <conio.h> // for _getch()
 #endif
 
 #ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
@@ -42,13 +42,10 @@ int result[3][3] = {
 
 int score[2] = {0, 0};
 
-// todo add ucode properly... then color writer > then move xy > then ascii arts
-// why element already occupied occurs? bec apos is i
-
 int run() {
     // Crispy part is here :)
     
-    // struct ascii_art tools[] = { {"hello", "art"}, {"yombie", "joo"} };
+    // struct ascii_arts pointer from left hand to right
     char ***arts = gen_art();
 
     // allocating memory for box structure
@@ -93,7 +90,7 @@ int run() {
 
     printf("\nEnter Player name: ");
     fgets(Player1, name_len, stdin); // Q: does fgets put \0 at name_len or name_len + 1?
-    Player1[strlen(Player1) - 1] = '\0';
+    Player1[strlen(Player1)] = '\0';
     printf("\n");
 
     if (*Player1 == '\0') {
@@ -103,9 +100,8 @@ int run() {
         strcpy(Player1, "Player1");
     }
 
-    // clear_lines(5, 1, 0, 0);
     create_box(box);
-    // int **t = gen_xy(nbox_bloc);
+
     embed_box(box, nbox_bloc, "name_box");
     int nbox_loc[2][2];
     darray_get_loc_by_name(box->elements, "name_box", nbox_bloc, nbox_loc);
@@ -117,14 +113,12 @@ int run() {
     int b1[2][2] = { {center - 10, 2} , {center - 10 + strlen(logo[logo_len]), logo_len + 1} };
     darray_append(box->elements, "logo", b1, b1, u1);
     
-    // unicode writer needs debugging
+    // unicode writer needs debugging [done]
     for (int j = 0; j < logo_len; j++) {
         unicode_writer(box, j + 2, center - 10, logo[j], str_size, "logo");
         // color_writer(box, center - 10, center - 10 + strlen(logo[j]), j + 2, 31);
     }    
 
-    // printf("n1 %d, n2%d\n", nbox_bloc[0][0], name_len);
-    // color_writer(box, nbox_bloc[0][0], nbox_bloc[1][0], nbox_bloc[0][1], 31);
     // color_unicode(box, "logo", 31);
     color_by_name(box, "logo", 031);
     color_by_name(box, "name_box", 032);
@@ -149,14 +143,6 @@ int run() {
     
     color_writer(box, note_loc[0][0] + 7, note_loc[1][0] - 2, note_loc[0][1], 41);
     /** end of note */
-
-    /** take input act accordingly
-     * like get_art only after take input 
-     * so first we have to take input
-     * for that terminal winpty something
-     * and get instant char
-    */
-
 
     print_box(box);
     // fflush(stdout);
@@ -244,9 +230,6 @@ int run() {
             write_line(box, right_loc[0][0], right_loc[1][0], right_loc[0][1] + i, a.right[i] );
         }
 
-        // everything okay so far try element fill
-
-        
         if (comp == 0) {
             strcpy(chosed, "rock");
         } else if (comp == 1) {
@@ -289,23 +272,8 @@ int run() {
         print_box(box);
 
         // fix clearing what written [done]
-        // make score update
-        // and make dynamic stretch
-        // now clearing what written
-
+        // make score update [done]
     }
-
-    // darray_show_json(box->elements);
-    // printf("\n\n");
-    // int t =  (u1 == *(box->elements->u + 1));
-    // darray_json_file(box->elements);
-    // ucode_json_file(*(box->elements->u + 1));
-
-    // printf("hello%d\n", r);
-    // sigtrap only when colored an element maybe 
-
-    char *h = malloc(5);
-    free(h);
 
     // printf("hello%d\n", r);
 
@@ -784,23 +752,6 @@ void x_shifter(xy_plane *box, int pos_x1, int pos_x2, int pos_y, int shift_by) {
 
 }
 
-void array_shift(char arr[], int arr_size, int shift_by, int text_len) {
-    // shift the text of length (text_len) by (shift_by)
-
-    if (shift_by + text_len > arr_size) {
-        printf("No enough memory for shifting");
-        return;
-    }
-
-    for (int i = 0; i < shift_by; i++) {
-        for (int j = text_len; j > 0; j--) {
-            // copying last element to next position
-            arr[i + j] = arr[i + j - 1];
-            // printf("\n%s\n", arr);
-        }
-    }
-}
-
 void unicode_writer(xy_plane *box, int pos_y, int pos_x, char *uni_string, int free_space, char *element) {
     // write single row of unicode string
 
@@ -868,29 +819,13 @@ void unicode_writer(xy_plane *box, int pos_y, int pos_x, char *uni_string, int f
     int old_row_size = *(box->size_x + pos_y);
     // storing changed length
     *(box->size_x + pos_y) = *(box->size_x + pos_y) + need;
-/*
-    // shift text of len (size_x - pos_x - free_space) by (need)
-    // array which needs to shift
-
-    int text_size = *(box->size_x + pos_y) - pos_x - free_space; // which text has to shift
-    int arr_size = text_size + need;  // array which has to shift
-
-    char *arr = temp_row + pos_x + free_space; // array which needs to shift
-
-    array_shift(arr, arr_size, need, text_size);
-    // using xshifter instead
-*/
-    // no n eed tep row
 
     x_shifter(box, pos_x + free_space, old_row_size - 1, pos_y, need);
 
     strcpy(temp_row + pos_x, uni_string); // copied unicoded string
     *(temp_row + pos_x + len) = backup;   // removed \0 after copy
 
-    // need something like darray
-
-
-
+    // updating information
     int b1[2][2] = { {pos_x, pos_y}, {pos_x + len, pos_y}};
     int l1[2][2] = { {pos_x, pos_y}, {pos_x + free_space, pos_y}};
     if (element != NULL) {
@@ -954,20 +889,10 @@ void color_writer(xy_plane *box, int pos_x1, int pos_x2, int pos_y, int color_co
     char backup1 = *(temp_row + pos_x1); // needed 1st char as strcpy \0
     char backup2 = *(temp_row + pos_x2);
 
-    // int text_size = *(box->size_x + pos_y) - pos_x1; // -1
-    // int arr_size = text_size + len; // text_size + len
-    // array_shift(temp_row + pos_x1, arr_size, len, text_size);
-    // added 6 char space in front of pos_x1 to add color code
-
     x_shifter(box, pos_x1, old_size, pos_y, len);
 
     strcpy(temp_row + pos_x1, color_string);
     *(temp_row + pos_x1 + len) = backup1;  // removed copied \0
-
-    // shiftinhg text satrting from pos_x2 to add space in front
-    // text_size = *(box->size_x + pos_y) - pos_x2;
-    // arr_size = text_size + len;
-    // array_shift(temp_row + pos_x2 + len, arr_size, len, text_size);
 
     x_shifter(box, pos_x2 + len, old_size + len, pos_y, len);
 
@@ -976,18 +901,15 @@ void color_writer(xy_plane *box, int pos_x1, int pos_x2, int pos_y, int color_co
 
     // *(box->size_x + pos_y) -= 2;
 
-    // need debuging
-    // i think fixed
-    //  something like darray
     inc_elements(box, pos_y, pos_x1, 2 * len);
 }
 
 /* instead you should actually make a better method for 
-detecting colors maybe by size but actual diff (done)
+detecting colors maybe by size but actual diff [done]
 
-and make a color remove method (working on it)
+and make a color remove method (working on it) [done]
 
-also update darray->loc of element when unicode or color (done)
+also update darray->loc of element when unicode or color [done]
 */
 
 int calculate_increment(xy_plane *box, int pos_y, int pos_x1) {
@@ -1182,7 +1104,6 @@ void decolor(xy_plane *box, int pos_x1, int pos_x2, int pos_y) {
     inc_elements(box, pos_y, pos_x1, -1 * (2 * code_len)); 
 }
 
-// after addiing this memory not allocated error i scoming in unicode????
 void decolor_unicode(xy_plane *box, char *name) {
     int bloc[2][2]; // actual coordinates
 
@@ -1299,323 +1220,5 @@ void element_fill(xy_plane *box, char *name, char c) {
 
 
 /*
-1. use lenx or leny for box coordinates and use size_x for actual bytes including 4
-*/
-// function to print json file
-/*
-void xyplane_show_json(xy_plane *array) {
-    // print line by line in json format
-    if (array->len > 0) {
-        printf("\n{\n    \"names\" : [ ");
-        for (int i = 0; i < array->lpos; i++) {
-            if (*(array->values + i) !=0 ) {
-                printf("\"%s\", ", *(array->names + i));
-            } else {
-                printf("null, ");
-            }
-        }
-        if (*(array->values + array->lpos) !=0 ) {
-            printf("\"%s\" ],", *(array->names + array->lpos));
-        } else {
-            printf("null ],");
-        }
-        // for bloc
-        printf("\n    \"bloc\" : [ ");
-        for (int i = 0; i < array->lpos; i++) {
-            int **xy = *(array->bloc + i);
-            if (*(array->values + i) !=0 ) {
-                printf("[ [%d, %d], [%d, %d] ], ", *(*( xy + 0) + 0), *(*( xy + 0) + 1), *(*( xy + 1) + 0), *(*( xy + 1) + 1));
-            } else {
-                printf("null, ");
-            }
-        }
-        if (*(array->values + array->lpos) !=0 ) {
-            int **xy = *(array->bloc + array->lpos);
-            printf("[ [%d, %d], [%d, %d] ] ], ", *(*( xy + 0) + 0), *(*( xy + 0) + 1), *(*( xy + 1) + 0), *(*( xy + 1) + 1));
-        } else {
-            printf("null ],");
-        }
-        // for loc
-        printf("\n    \"loc\" : [ ");
-        for (int i = 0; i < array->lpos; i++) {
-            int **xy = *(array->loc + i);
-            if (*(array->values + i) !=0 ) {
-                printf("[ [%d, %d], [%d, %d] ], ", *(*( xy + 0) + 0), *(*( xy + 0) + 1), *(*( xy + 1) + 0), *(*( xy + 1) + 1));
-            } else {
-                printf("null, ");
-            }
-        }
-        if (*(array->values + array->lpos) !=0 ) {
-            int **xy = *(array->loc + array->lpos);
-            printf("[ [%d, %d], [%d, %d] ] ], ", *(*( xy + 0) + 0), *(*( xy + 0) + 1), *(*( xy + 1) + 0), *(*( xy + 1) + 1));
-        } else {
-            printf("null ],");
-        }
-
-        printf("\n    \"size\" : %d,", array->size);
-        printf("\n    \"len\" : %d,", array->len);
-        printf("\n    \"apos\" : %d,", array->apos);
-        printf("\n    \"lpos\" : %d,", array->lpos);
-        printf("\n    \"values\" : [ ");
-        for (int i = 0; i < array->lpos; i++) {
-            printf("%d, ", *(array->values + i) );
-        } 
-        printf("%d ]\n}\n", *(array->values + array->lpos));
-    } else {
-        printf("\n{\n    \"names\" : null,");
-        printf("\n    \"bloc\" : null, ");
-        printf("\n    \"loc\" : null, ");
-        printf("\n    \"size\" : %d,", array->size);
-        printf("\n    \"len\" : %d,", array->len);
-        printf("\n    \"apos\" : %d,", array->apos);
-        printf("\n    \"lpos\" : %d,", array->lpos);
-        printf("\n    \"values\" : [ ");
-        for (int i = 0; i < array->lpos; i++) {
-            printf("%d, ", *(array->values + i) );
-        } 
-        printf("%d ]\n}\n", *(array->values + array->lpos) );
-    }
-    return;
-}
-
-int darray_json_len(darray *array) {
-    int len = 0;
-    if (array->len > 0) {
-        len = len + strlen("\n{\n    \"names\" : [ ");
-        for (int i = 0; i < array->lpos; i++) {
-            if (*(array->values + i) !=0 ) {
-                len = len + strlen("\"\", ") + strlen( *(array->names + i) );
-            } else {
-                len = len + strlen("null, ");
-            }
-        }
-        if (*(array->values + array->lpos) !=0 ) {
-            len = len + strlen("\"\" ],") + strlen( *(array->names + array->lpos) );
-        } else {
-            len = len + strlen("null ],");
-        }
-        // for bloc
-        len = len + strlen("\n    \"bloc\" : [ ");
-        for (int i = 0; i < array->lpos; i++) {
-            int **xy = *(array->bloc + i);
-            if (*(array->values + i) !=0 ) {
-                len = len + strlen("[ [, ], [, ] ], ") + 4 * 6;
-            } else {
-                len = len + strlen("null, ");
-            }
-        }
-        if (*(array->values + array->lpos) !=0 ) {
-            int **xy = *(array->bloc + array->lpos);
-            len = len + strlen("[ [, ], [, ] ] ], ") + 4 * 6;
-        } else {
-            len = len + strlen("null ], ");
-        }
-        // for loc
-        len = len + strlen("\n    \"loc\" : [ ");
-        for (int i = 0; i < array->lpos; i++) {
-            int **xy = *(array->loc + i);
-            if (*(array->values + i) !=0 ) {
-                len = len + strlen("[ [, ], [, ] ], ") + 4 * 6;
-            } else {
-                len = len + strlen("null, ");
-            }
-        }
-        if (*(array->values + array->lpos) !=0 ) {
-            int **xy = *(array->loc + array->lpos);
-            len = len + strlen("[ [, ], [, ] ] ], ") + 4 * 6;
-        } else {
-            len = len + strlen("null ], ");
-        }
-
-        len = len + strlen("\n    \"size\" : ,") + 6;
-        len = len + strlen("\n    \"len\" : ,") + 6;
-        len = len + strlen("\n    \"apos\" : ,") + 6;
-        len = len + strlen("\n    \"lpos\" : ,") + 6;
-        len = len + strlen("\n    \"values\" : [ ");
-        for (int i = 0; i < array->lpos; i++) {
-            len = len + strlen(", ") + 6;
-        } 
-        len = len + strlen(" ]\n}\n") + 6;
-    } else {
-        len = len + strlen("\n{\n    \"names\" : null,");
-        len = len + strlen("\n    \"bloc\" : null, ");
-        len = len + strlen("\n    \"loc\" : null, ");
-        len = len + strlen("\n    \"size\" : ,") + 6;
-        len = len + strlen("\n    \"len\" : ,") + 6;
-        len = len + strlen("\n    \"apos\" : ,") + 6;
-        len = len + strlen("\n    \"lpos\" : ,") + 6;
-        len = len + strlen("\n    \"values\" : [ ");
-        for (int i = 0; i < array->lpos; i++) {
-            len = len + strlen(", ") + 6;
-        } 
-        len = len + strlen(" ]\n}\n") + 6;
-    }
-    return len;
-}
-
-char* darray_json_string(darray *array) {
-    // return allocated string pointer
-    int len = darray_json_len(array); int t = 0;
-    char *str = malloc(len + 1);
-    if (str == NULL) {
-        printf("\njson string cannot be allocated!!\n");
-        return NULL;
-    }
-    if (array->len > 0) {
-        t += sprintf(str + t, "\n{\n    \"names\" : [ ");
-        for (int i = 0; i < array->lpos; i++) {
-            if (*(array->values + i) !=0 ) {
-                t += sprintf(str + t,"\"%s\", ", *(array->names + i));
-            } else {
-                t += sprintf(str + t, "null, ");
-            }
-        }
-        if (*(array->values + array->lpos) !=0 ) {
-            t += sprintf(str + t, "\"%s\" ],", *(array->names + array->lpos));
-        } else {
-            t += sprintf(str + t, "null ],");
-        }
-
-        // for bloc
-        t += sprintf(str + t, "\n    \"bloc\" : [ ");
-        for (int i = 0; i < array->lpos; i++) {
-            int **xy = *(array->bloc + i);
-            if (*(array->values + i) !=0 ) {
-                t += sprintf(str + t, "[ [%d, %d], [%d, %d] ], ", *(*( xy + 0) + 0), *(*( xy + 0) + 1), *(*( xy + 1) + 0), *(*( xy + 1) + 1));
-            } else {
-                t += sprintf(str + t, "null, ");
-            }
-        }
-        if (*(array->values + array->lpos) !=0 ) {
-            int **xy = *(array->bloc + array->lpos);
-            t += sprintf(str + t, "[ [%d, %d], [%d, %d] ] ], ", *(*( xy + 0) + 0), *(*( xy + 0) + 1), *(*( xy + 1) + 0), *(*( xy + 1) + 1));
-        } else {
-            t += sprintf(str + t, "null ],");
-        }
-        // for loc
-        t += sprintf(str + t, "\n    \"loc\" : [ ");
-        for (int i = 0; i < array->lpos; i++) {
-            int **xy = *(array->loc + i);
-            if (*(array->values + i) !=0 ) {
-                t += sprintf(str + t, "[ [%d, %d], [%d, %d] ], ", *(*( xy + 0) + 0), *(*( xy + 0) + 1), *(*( xy + 1) + 0), *(*( xy + 1) + 1));
-            } else {
-                t += sprintf(str + t, "null, ");
-            }
-        }
-        if (*(array->values + array->lpos) !=0 ) {
-            int **xy = *(array->loc + array->lpos);
-            t += sprintf(str + t, "[ [%d, %d], [%d, %d] ] ], ", *(*( xy + 0) + 0), *(*( xy + 0) + 1), *(*( xy + 1) + 0), *(*( xy + 1) + 1));
-        } else {
-            t += sprintf(str + t, "null ],");
-        }
-
-        t += sprintf(str + t, "\n    \"size\" : %d,", array->size);
-        t += sprintf(str + t, "\n    \"len\" : %d,", array->len);
-        t += sprintf(str + t, "\n    \"apos\" : %d,", array->apos);
-        t += sprintf(str + t, "\n    \"lpos\" : %d,", array->lpos);
-        t += sprintf(str + t, "\n    \"values\" : [ ");
-        for (int i = 0; i < array->lpos; i++) {
-            t += sprintf(str + t, "%d, ", *(array->values + i) );
-        } 
-        t += sprintf(str + t, "%d ]\n}\n", *(array->values + array->lpos));
-    } else {
-        t += sprintf(str + t, "\n{\n    \"names\" : null,");
-        t += sprintf(str + t, "\n    \"bloc\" : null, ");
-        t += sprintf(str + t, "\n    \"loc\" : null, ");
-        t += sprintf(str + t, "\n    \"size\" : %d,", array->size);
-        t += sprintf(str + t, "\n    \"len\" : %d,", array->len);
-        t += sprintf(str + t, "\n    \"apos\" : %d,", array->apos);
-        t += sprintf(str + t, "\n    \"lpos\" : %d,", array->lpos);
-        t += sprintf(str + t, "\n    \"values\" : [ ");
-        for (int i = 0; i < array->lpos; i++) {
-            t += sprintf(str + t, "%d, ", *(array->values + i) );
-        } 
-        t += sprintf(str + t, "%d ]\n}\n", *(array->values + array->lpos) );
-    }
-    *(str + t) = '\0'; // added null character at last
-    return str;
-}
-
-int darray_json_file(darray *array) {
-    // write json string into file tout.json
-    char *s = darray_json_string(array);
-    FILE *fp = fopen("tout.json", "w");
-    if (fp == NULL) {
-        printf("\ntout.json file cannot be opened in written mode!!\n");
-        return 0;
-    }
-    int r = fprintf(fp, s);
-    if (r < 0) {
-        printf("\njson data cannot be written to file!\n");
-        return 0;
-    }
-    fclose(fp);
-    free(s);
-    return strlen(s);
-}
-*/
-
-/*
-
-// THANKS TO wynand1004 , Harleythetech (for reverse)
-static char *l_rock[] = {
-    "    _______  ",
-    "---'   ____) ",
-    "      (_____)",
-    "      (_____)",
-    "      (____) ",
-    "---.__(___)  ",
-    "ROCK         "
-};
-
-static char *l_paper[] = {
-    "     _______      ",
-    "---'    ____)____ ",
-    "           ______)",
-    "          _______)",
-    "         _______) ",
-    "---.__________)   ",
-    "PAPER             "
-};
-
-static char *l_scissor[] = {
-    "    _______      ",
-    "---'   ____)____ ",
-    "          ______)",
-    "      __________)",
-    "      (____)     ",
-    "---.__(___)      ",
-    "SCISSORS         "
-};
-
-static char *r_rockr[] = {
-    "  _______    ",
-    " (____   '---",
-    "(_____)      ",
-    "(_____)      ",
-    " (____)      ",
-    "  (___)__.---",
-    "         ROCK"
-};
-
-static char *r_paper[] = {
-    "      _______     ",
-    " ____(____   '----",
-    "(______           ",
-    "(_______          ",
-    " (_______         ",
-    "   (__________.---",
-    "             PAPER"
-};
-
-static char *r_scissor[] = {
-    "      _______    ",
-    " ____(____   '---",
-    "(______          ",
-    "(__________      ",
-    "     (____)      ",
-    "      (___)__.---",
-    "          SCISOORS"
-};
-
+1. use lenx or leny for box coordinates and use size_x for actual bytes including 4 [done]
 */
