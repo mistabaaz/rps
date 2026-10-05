@@ -17,16 +17,7 @@ one year gone but stil can't complete it due to inconsistency
 
 #ifdef _WIN32
 #include <windows.h>  // for many internal apis
-// #include <wchar.h>
 #include <conio.h> // for _getch()
-#endif
-
-#ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
-#define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
-#endif
-
-#ifndef DISABLE_NEWLINE_AUTO_RETURN
-#define DISABLE_NEWLINE_AUTO_RETURN 0x0008
 #endif
 
 #include "darray.h"  // for dynamic string array
@@ -90,7 +81,7 @@ int run() {
 
     printf("\nEnter Player name: ");
     fgets(Player1, name_len, stdin); // Q: does fgets put \0 at name_len or name_len + 1?
-    Player1[strlen(Player1)] = '\0';
+    Player1[strlen(Player1) - 1] = '\0'; // replaced \n
     printf("\n");
 
     if (*Player1 == '\0') {
@@ -179,6 +170,11 @@ int run() {
             element_fill(box, "chosed", ' ');
             element_fill(box, "win", ' ');
         }
+
+        // moved cursor to top
+        up_down = 1 * (choice_loc[0][1] + 1);
+        right_left = 1 * 0;
+        move_cursor(up_down, right_left);
 
         int user;
         if ( c == 'r' || c == '1') {
@@ -391,7 +387,7 @@ int enable_terminal_settings(int size_x, int size_y) {
     GetConsoleScreenBufferInfo(hOut, &csbi);
     c.X = csbi.srWindow.Right - csbi.srWindow.Left + 1;
     c.Y = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
-    // BOOL ok = SetConsoleScreenBufferSize(hOut, c);
+    BOOL ok = SetConsoleScreenBufferSize(hOut, c);
     // ok = ShowScrollBar(handle, SB_VERT, 0);
     // if (!ok) printf("cant disable scroll bar!\n");
 
