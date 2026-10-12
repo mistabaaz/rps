@@ -4,12 +4,10 @@
 
 #ifdef _WIN32
 #include <windows.h>
-// HWINEVENTHOOK cs_hook;
 #endif
 
 // using window size form ui.c
 extern int size_x, size_y;
-int dynamic = 0;  // dynamic resize not possible
 
 int main(int argv, char **argc) {
     // just a start point
@@ -28,7 +26,6 @@ int main(int argv, char **argc) {
     if (temp_x != 0 && temp_y != 0) {
         size_x = temp_x;
         size_y = temp_y;
-        dynamic = 0;  // fixed size window
     }
 
     #ifdef _WIN32
@@ -56,7 +53,7 @@ int main(int argv, char **argc) {
     // SetStdHandle(STD_INPUT_HANDLE, hAlt);
     #endif
 
-    int val = change_terminal_settings(size_x, size_y, dynamic);
+    int val = change_terminal_settings(size_x, size_y);
     if (val == -1) {
         printf("can't enable vt-100 escap sequence!\n");
         return -1;
@@ -68,10 +65,6 @@ int main(int argv, char **argc) {
     CloseHandle(hAlt);
     SetConsoleActiveScreenBuffer(hOut);
     SetStdHandle(STD_OUTPUT_HANDLE, hOut);
-
-    // if (dynamic == 1) {
-    //     UnhookWinEvent(cs_hook);
-    // }
     #endif
 
     return 0;

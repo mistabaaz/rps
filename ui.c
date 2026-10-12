@@ -18,7 +18,6 @@ one year gone but stil can't complete it due to inconsistency
 #ifdef _WIN32
 #include <windows.h>  // for many internal apis
 #include <conio.h> // for _getch()
-// #include <processthreadsapi.h> // for GetCurrentProcessId()
 #endif
 
 #include "darray.h"  // for dynamic string array
@@ -338,25 +337,10 @@ int normal_style() {
     return 0;
 }
 
-/*
-#ifdef _WIN32
-void CALLBACK HandleChangeSize(HWINEVENTHOOK hook, DWORD event, HWND hwnd, LONG idObject, LONG idChild, DWORD dwEventThread, DWORD dwmsEventTime) {
-    if (event == EVENT_SYSTEM_MOVESIZESTART) {
-        printf("Begin: ");
-    } else if (event == EVENT_SYSTEM_MOVESIZEEND) {
-        printf("End: ");
-    } else if (event == EVENT_CONSOLE_LAYOUT) {
-        printf("Layout Changed;");
-    }
-}
-#endif
-*/
-
-int change_terminal_settings(int size_x, int size_y, int dynamic) {
+int change_terminal_settings(int size_x, int size_y) {
     // enable unicode & escape sequence in windows
     
     #ifdef _WIN32
-    // extern HWINEVENTHOOK cs_hook;  // from rps.c
     // Requires windows ver 1511 or above
     // for enabling VT-100 in windows or system(" ");
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -440,21 +424,14 @@ int change_terminal_settings(int size_x, int size_y, int dynamic) {
     // another way to change cursor style
     // printf("\x1b[1 q");
 
-    if (dynamic == 0) {
-        // get current style
-        LONG gwlStyle = GetWindowLong(handle, GWL_STYLE);
-        // disabled maximize button and resizeing layer
-        gwlStyle &= ~WS_MAXIMIZEBOX & ~WS_SIZEBOX;
-        // setting new style
-        SetWindowLong(handle, GWL_STYLE, gwlStyle);
-    } else {
-        // setup hook for change in layout
-        // cs_hook = SetWinEventHook(EVENT_MIN, EVENT_MAX , NULL, HandleChangeSize, 0, 0, 0);
-        // MSG msg;
-        // GetMessage(&msg, NULL, 0, 0);
-        // dosent work without waiting for input like getMessage
-    }
+    // get current style
+    LONG gwlStyle = GetWindowLong(handle, GWL_STYLE);
+    // disabled maximize button and resizeing layer
+    gwlStyle &= ~WS_MAXIMIZEBOX & ~WS_SIZEBOX;
+    // setting new style
+    SetWindowLong(handle, GWL_STYLE, gwlStyle);
 
+    // thought of dynamic resize but its too much work & isnt consistent
     #endif
     return 0;
 }
@@ -567,28 +544,6 @@ void print_box(xy_plane *box) {
 
     // printf("\n");
 }
-
-/*
-// its just not possible to dynamically print or resize
-// as it requires repainting all elements on box 
-void dynamic_print_box(xy_plane *box, int dynamic) {
-    if (dynamic == 1) {
-        // get current size of console 
-        HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-        COORD c;
-        CONSOLE_SCREEN_BUFFER_INFO csbi;
-        GetConsoleScreenBufferInfo(hOut, &csbi);
-        c.X = csbi.srWindow.Right - csbi.srWindow.Left + 1;
-        c.Y = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
-        SMALL_RECT sr = {.Right = c.X + 0, .Left = 0, .Top = 0, .Bottom = c.Y + 0};
-        SetConsoleWindowInfo(hOut, TRUE, &sr);
-        SetConsoleScreenBufferSize(hOut, c);
-        // not possible
-    } else {
-        print_box(box);
-    }
-}
-*/
 
 void embed_box(xy_plane *box, int loc[2][2], char *element) {
     // makes another box inside the outer box :)
