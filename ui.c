@@ -138,7 +138,7 @@ int run() {
     color_writer(box, note_loc[0][0] + 7, note_loc[1][0] - 2, note_loc[0][1], 41);
     /** end of note */
 
-    print_box(box);
+    themed_print_box(box);
     // fflush(stdout);
     
     int midx = *(box->len_x + 0) / 2;
@@ -157,7 +157,7 @@ int run() {
     while (1) {
         // trying to move cursor to ask position
         int up_down = 1 * (box->len_y - choice_loc[0][1] + 1);
-        int right_left = 1 * ( padding + strlen(ask) );
+        int right_left = 1 * ( padding + strlen(ask) + 1 );
         // printf("updown: %d, right_left: %d\n", up_down, right_left);
         move_cursor(up_down, right_left);
         
@@ -268,7 +268,8 @@ int run() {
         }
         
 
-        print_box(box);
+        // print_box(box);
+        themed_print_box(box);
 
         // fix clearing what written [done]
         // make score update [done]
@@ -540,6 +541,55 @@ void print_box(xy_plane *box) {
     printf("\n");
     for (int i = 0; i < box->size_y; i++) {
         printf("%s", *(box->rows + i));
+    }
+
+    // printf("\n");
+}
+
+void fprint_box(FILE *fp, xy_plane *box) {
+    // print all rows from box
+
+    fprintf(fp, "\n");
+    for (int i = 0; i < box->size_y; i++) {
+        fprintf(fp, "%s", *(box->rows + i));
+    }
+
+    // printf("\n");
+}
+
+void themed_print_box(xy_plane *box) {
+    // print all rows from box
+    printf("\x1b[48;5;237m");
+    // printf("\n");
+    for (int i = 0; i < box->size_y; i++) {
+        // printf("%s", *(box->rows + i));
+        for(int j = 0; j < *(box->size_x + i); j++) {
+            char t = *(*(box->rows + i) + j) ;
+            if ( t == '+' && j == 0 && i == box->size_y - 1) {
+                printf("\u2570");
+            } else if ( t == '+' && j == (*(box->size_x + i) - 3) && i == box->size_y - 1) {
+                printf("\u256F");
+            } else if ( t == '+' && j == 0) {
+                printf(" \u256D");
+            } else if ( t == '+' && j == (*(box->size_x + i) - 3)) {
+                printf("\u256E");
+            } else if ( t == '-' && i == 2 ) {
+                printf(" ");
+            } else if ( t == '|' && i == 3 && j > 0 && j < *(box->size_x + i) - 3) {
+                printf(" ");
+            } else if ( t == '|' && i == 4 && j > 0 && j < *(box->size_x + i) - 3) {
+                printf(" ");
+            } else if ( t == '-' ) {
+                printf("\u2500");
+            } else if ( t  == '|' ) {
+                printf("\u2502");
+            } else {
+                printf("%c", t);
+            }
+            if ( i == 13 && j == *(box->size_x + i) - 10 ) {
+                printf("\x1b[48;5;237m");
+            }
+        }
     }
 
     // printf("\n");
