@@ -9,6 +9,12 @@
 #define DISABLE_NEWLINE_AUTO_RETURN 0x0008
 #endif
 
+// ui becomes bad after these in my laptop
+#define MIN_SIZEX 62
+#define MIN_SIZEY 27
+#define MAX_SIZEX 145
+#define MAX_SIZEY 32
+
 typedef struct xy_plane {
     char **rows;  // adress of strings
     int *size_x;  // depends on y-axis eg. [2,2,2,2]
@@ -41,7 +47,7 @@ void color_by_name(xy_plane *box, char *name, int color_code);
 void color_unicode(xy_plane *box, char *name, int color_code);
 void decolor(xy_plane *box, int pos_x1, int pos_x2, int pos_y);
 void decolor_by_name(xy_plane *box, char *name);
-int enable_terminal_settings(int size_x, int size_y);
+int change_terminal_settings(int size_x, int size_y, int dynamic);
 void element_fill(xy_plane *box, char *name, char c);
 int calculate_increment(xy_plane *box, int pos_y, int pos_x1); 
 
