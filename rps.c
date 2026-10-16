@@ -8,18 +8,26 @@
 
 // using window size form ui.c
 extern int size_x, size_y;
+int legacy = 0; // for themed printing
 
 int main(int argv, char **argc) {
     // just a start point
     long int temp_x = 0, temp_y = 0;
 
     if (argv == 1) {
+    } else if (argv == 2 && strcmp(argc[1], "--legacy") == 0) {
+        legacy = 1;
     } else if (argv == 3) {
         temp_x = strtol(argc[1], NULL, 10);
         temp_y = strtol(argc[2], NULL, 10);
+    } else if (argv == 4 && strcmp(argc[3], "--legacy") == 0 ) {
+        temp_x = strtol(argc[1], NULL, 10);
+        temp_y = strtol(argc[2], NULL, 10);
+        legacy = 1;  // disables themed printing
     } else {
-        printf("usage : %s size_x size_y\n", argc[0]);
-        printf("example : %s 80 27\n", argc[0]);
+        printf("usage : %s [size_x size_y] [--legacy]\n", argc[0]);
+        printf("example : %s 80 27 --legacy\n", argc[0]);
+        printf("      or  %s --legacy\n", argc[0]);
         return -1;
     }
     
@@ -59,7 +67,7 @@ int main(int argv, char **argc) {
         return -1;
     }
 
-    run();
+    run(legacy);
 
     #ifdef _WIN32
     CloseHandle(hAlt);

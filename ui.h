@@ -30,7 +30,7 @@ struct ascii_art {
 };
 
 int comp_choice();
-int run();
+int run(int legacy);
 
 xy_plane* gen_xyplane();
 void create_box(xy_plane *box);

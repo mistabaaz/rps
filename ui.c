@@ -36,7 +36,7 @@ int result[3][3] = {
 
 int score[2] = {0, 0};
 
-int run() {
+int run(int legacy) {
     // Crispy part is here :)
     
     // struct ascii_arts pointer from left hand to right
@@ -114,8 +114,8 @@ int run() {
     }    
 
     // color_unicode(box, "logo", 31);
-    color_by_name(box, "logo", 031);
-    color_by_name(box, "name_box", 032);
+    color_by_name(box, "logo", 31);
+    color_by_name(box, "name_box", 32);
     // decolor(box, nbox_bloc[0][0] + 5, nbox_bloc[0][0] + name_len + 1 + 5, nbox_bloc[0][1] + 1);
     decolor_by_name(box, "name_box");
     decolor_by_name(box, "logo");
@@ -126,7 +126,8 @@ int run() {
     int choice_loc[2][2] = { { padding, logo_len + 5}, {strlen(ask) + padding + 1, logo_len + 5} };
     write_line(box, padding, strlen(ask) + padding + 1, logo_len + 5, ask);
     darray_append(box->elements, "choice", choice_loc, choice_loc, NULL);
-
+    color_by_name(box, "choice", 30);
+    decolor_by_name(box, "choice");
 
     /** a simple note*/
     char *note = "(q for quit)";
@@ -138,7 +139,11 @@ int run() {
     color_writer(box, note_loc[0][0] + 7, note_loc[1][0] - 2, note_loc[0][1], 41);
     /** end of note */
 
-    themed_print_box(box);
+    if (legacy == 0) {
+        themed_print_box(box);
+    } else {
+        print_box(box);
+    }
     // fflush(stdout);
     
     int midx = *(box->len_x + 0) / 2;
@@ -211,6 +216,11 @@ int run() {
         darray_get_loc_by_name(box->elements, "name_box", nbox_bloc, nbox_loc);
         int inc1 = calculate_increment(box, nbox_loc[0][1], nbox_loc[1][0]);
         int inc2 = calculate_increment(box, nbox_loc[1][1], nbox_loc[1][0]);
+        int colored_flag = darray_get_color_flag(box->elements, "name_box");
+        if (colored_flag == 1) {
+            inc1 -= 5;
+            inc2 -= 5;  // -5 for self color
+        }
 
         snprintf(scr, 2, "%d", score[0]);
         write_line(box, nbox_loc[1][0] + inc1 - 2, nbox_loc[1][0] + inc1, nbox_loc[0][1], scr);
@@ -220,7 +230,7 @@ int run() {
 
         struct art_couple a;
         a = get_art(user, comp, arts);
-        
+
         for (int i = 0; i < art_height; i++) {
             write_line(box, left_loc[0][0], left_loc[1][0], left_loc[0][1] + i, a.left[i] );
         }
@@ -228,6 +238,9 @@ int run() {
         for (int i = 0; i < art_height; i++) {
             write_line(box, right_loc[0][0], right_loc[1][0], right_loc[0][1] + i, a.right[i] );
         }
+
+        // color_by_name(box, "left_art", 33);
+        // color_by_name(box, "right_art", 34);
 
         if (comp == 0) {
             strcpy(chosed, "rock");
@@ -248,6 +261,7 @@ int run() {
         } else {
             darray_update_loc_by_name(box->elements, "chosed", chosed_loc, chosed_loc);
         }
+        // color_by_name(box, "chosed", 35);
 
         int res = result[user][comp];
         if (res == 0) {
@@ -266,13 +280,23 @@ int run() {
         } else {
             darray_update_loc_by_name(box->elements, "win", win_loc, win_loc);
         }
+        // color_by_name(box, "win", 36);
         
 
-        // print_box(box);
-        themed_print_box(box);
+        if (legacy == 0) {
+            themed_print_box(box);
+        } else {
+            print_box(box);
+        }
 
         // fix clearing what written [done]
         // make score update [done]
+
+        // have to decolor and recolor idk how to fix
+        // decolor_by_name(box, "left_art");
+        // decolor_by_name(box, "right_art");
+        // decolor_by_name(box, "chosed");
+        // decolor_by_name(box, "win");
     }
 
     // printf("hello%d\n", r);
@@ -558,36 +582,111 @@ void fprint_box(FILE *fp, xy_plane *box) {
 }
 
 void themed_print_box(xy_plane *box) {
-    // print all rows from box
-    printf("\x1b[48;5;237m");
+    // printing box with a theme
+
+    // changing background color
+    char *background = "\x1b[48;5;237m";
+    printf("%s", background);
+
+    int lines[70];
+    int color_end_val[70];
+    int count = 0;
+
+    // counting where color changes
+    for (int i = 0; i < box->elements->len; i++) {
+        int bloc[2][2]; int loc[2][2];
+        char *name = darray_get(box->elements, i, bloc, loc, NULL);
+        if ( name != NULL ) {
+            int color_flag = *(box->elements->cval + i);
+            int unicode_flag = *(box->elements->uval + i);
+            if (color_flag == 1 && unicode_flag == 1) {
+                // for unicode elements
+                ucode *uc = *(box->elements->u + i);
+                for (int j = 0; j < uc->len; j++) {
+                    uget_bxy(uc, j, bloc);
+                    lines[count] = bloc[0][1];
+                    color_end_val[count] = bloc[1][0] + 5; // +5 for self start color code
+                    count++;
+                }
+            } else if (color_flag == 1) {
+                // for simple elements
+                for (int j = bloc[0][1]; j < bloc[1][1] + 1; j++) {
+                    lines[count] = j;
+                    int inc = calculate_increment(box, j, bloc[0][0]);
+                    color_end_val[count] = bloc[1][0] + inc + 5; // +5 for self color
+                    count++;
+                }
+            }
+        }
+    }
+
+    // special cases like red color of quit
+    int note_loc[2][2];
+    if ( darray_get_loc_by_name(box->elements, "note", note_loc, note_loc) != -1 ) {
+        lines[count] = note_loc[0][1];
+        color_end_val[count] = note_loc[1][0] + 8;
+        count++;
+    } 
+
+    // border of name_box
+    int hide_lines[35];
+    int nlines = 0;
+    for (int i = 0; i < box->elements->len; i++) {
+        int bloc[2][2]; int loc[2][2];
+        char *name = darray_get(box->elements, i, bloc, loc, NULL);
+        if ( name != NULL ) {
+            int len = strlen(name);
+            int flag = ( 'b' == name[len - 3] && 'o' == name[len - 2] && 'x' == name[len - 1] );
+            if ('_' == name[len - 4] && flag) {
+                // means its a box
+                // hiden all lines except last for underline
+                for (int j = bloc[0][1]; j < bloc[1][1]; j++) {
+                    hide_lines[nlines] = j;
+                    nlines++;
+                }
+            }
+        }
+    }
+
+
     // printf("\n");
     for (int i = 0; i < box->size_y; i++) {
         // printf("%s", *(box->rows + i));
         for(int j = 0; j < *(box->size_x + i); j++) {
             char t = *(*(box->rows + i) + j) ;
+
+            // hiding box lines
+            int done = 0;
+            for (int k = 0; k < nlines; k++) {
+                int flag = ( i == hide_lines[k] && j > 0 && j < *(box->size_x + hide_lines[k]) - 3 );
+                if ( ( t == '-' || t == '|') && flag ) {
+                    printf(" ");
+                    done = 1;
+                }
+            }
+
+            // handling box borders , -3 for +\n\0
             if ( t == '+' && j == 0 && i == box->size_y - 1) {
                 printf("\u2570");
-            } else if ( t == '+' && j == (*(box->size_x + i) - 3) && i == box->size_y - 1) {
+            } else if ( t == '+' && j == *(box->size_x + i) - 3 && i == box->size_y - 1) {
                 printf("\u256F");
             } else if ( t == '+' && j == 0) {
                 printf(" \u256D");
             } else if ( t == '+' && j == (*(box->size_x + i) - 3)) {
                 printf("\u256E");
-            } else if ( t == '-' && i == 2 ) {
-                printf(" ");
-            } else if ( t == '|' && i == 3 && j > 0 && j < *(box->size_x + i) - 3) {
-                printf(" ");
-            } else if ( t == '|' && i == 4 && j > 0 && j < *(box->size_x + i) - 3) {
-                printf(" ");
-            } else if ( t == '-' ) {
+            } else if ( t == '-' && done == 0) {
                 printf("\u2500");
-            } else if ( t  == '|' ) {
+            } else if ( t  == '|' && done == 0) {
                 printf("\u2502");
-            } else {
+            } else if (done == 0) {
                 printf("%c", t);
             }
-            if ( i == 13 && j == *(box->size_x + i) - 10 ) {
-                printf("\x1b[48;5;237m");
+
+            // handeling background color
+            for(int k = 0; k < count; k++) {
+                if (i == lines[k] && j == color_end_val[k]) {
+                    printf("%s", background);
+                }
             }
         }
     }
@@ -1004,7 +1103,7 @@ int calculate_increment(xy_plane *box, int pos_y, int pos_x1) {
         } else {
             if ( *(box->elements->cval + i) == 1) {
                 get_bxy(box->elements, i, bloc);
-                int flag = (bloc[0][1] == pos_y) && (bloc[0][0] < pos_x1);
+                int flag = (bloc[0][1] <= pos_y) && (bloc[1][1] >= pos_y)  && (bloc[0][0] < pos_x1);
                 if (flag) {
                     inc += 2 * 5;
                 }
