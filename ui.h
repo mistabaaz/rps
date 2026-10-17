@@ -30,13 +30,14 @@ struct ascii_art {
 };
 
 int comp_choice();
-int run(int legacy);
+int run(int legacy, int snapshots);
 
 xy_plane* gen_xyplane();
 void create_box(xy_plane *box);
 void print_box(xy_plane *box);
 void fprint_box(FILE *fp, xy_plane *box);
 void themed_print_box(xy_plane *box);
+void legacy_fprint_box(FILE *fp, xy_plane *box);
 void free_box(xy_plane *box);
 void embed_box(xy_plane *box, int loc[2][2], char *element);
 void write_line(xy_plane *box, int pos_x1, int pos_x2, int pos_y, char *string); 

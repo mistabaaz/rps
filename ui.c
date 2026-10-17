@@ -36,7 +36,7 @@ int result[3][3] = {
 
 int score[2] = {0, 0};
 
-int run(int legacy) {
+int run(int legacy, int snapshots) {
     // Crispy part is here :)
     
     // struct ascii_arts pointer from left hand to right
@@ -113,12 +113,12 @@ int run(int legacy) {
         // color_writer(box, center - 10, center - 10 + strlen(logo[j]), j + 2, 31);
     }    
 
-    // color_unicode(box, "logo", 31);
-    color_by_name(box, "logo", 31);
-    color_by_name(box, "name_box", 32);
+    // color_unicode(box, "logo", 33);
+    color_by_name(box, "logo", 36);
+    // color_by_name(box, "name_box", 36);
     // decolor(box, nbox_bloc[0][0] + 5, nbox_bloc[0][0] + name_len + 1 + 5, nbox_bloc[0][1] + 1);
-    decolor_by_name(box, "name_box");
-    decolor_by_name(box, "logo");
+    // decolor_by_name(box, "name_box");
+    // decolor_by_name(box, "logo");
 
     // element choice
     char *ask = "Enter choice: ";
@@ -126,8 +126,8 @@ int run(int legacy) {
     int choice_loc[2][2] = { { padding, logo_len + 5}, {strlen(ask) + padding + 1, logo_len + 5} };
     write_line(box, padding, strlen(ask) + padding + 1, logo_len + 5, ask);
     darray_append(box->elements, "choice", choice_loc, choice_loc, NULL);
-    color_by_name(box, "choice", 30);
-    decolor_by_name(box, "choice");
+    // color_by_name(box, "choice", 32);
+    // decolor_by_name(box, "choice");
 
     /** a simple note*/
     char *note = "(q for quit)";
@@ -170,19 +170,6 @@ int run(int legacy) {
         #ifdef _WIN32
         int c = _getch(); // instead disable canonical mode
         #endif
-        
-        int cleaned = darray_get_pos(box->elements, "win");
-        if (cleaned != -1) {
-            element_fill(box, "left_art", ' ');
-            element_fill(box, "right_art", ' ');
-            element_fill(box, "chosed", ' ');
-            element_fill(box, "win", ' ');
-        }
-
-        // moved cursor to top
-        up_down = 1 * (choice_loc[0][1] + 1);
-        right_left = 1 * 0;
-        move_cursor(up_down, right_left);
 
         int user;
         if ( c == 'r' || c == '1') {
@@ -204,7 +191,25 @@ int run(int legacy) {
             int r = ud_json_file(box->elements);
             free_box(box);
             return 0;
+        } else {
+            printf("\x1b[1;30mplease enter r p s or 1 2 3\x1b[0m");
+            up_down = -1 * (box->len_y - choice_loc[0][1] + 1);
+            move_cursor(up_down, 0); // move cursor to end
+            continue;
         }
+
+        int cleaned = darray_get_pos(box->elements, "win");
+        if (cleaned != -1) {
+            element_fill(box, "left_art", ' ');
+            element_fill(box, "right_art", ' ');
+            element_fill(box, "chosed", ' ');
+            element_fill(box, "win", ' ');
+        }
+
+        // moved cursor to top
+        up_down = 1 * (choice_loc[0][1] + 1);
+        right_left = 1 * 0;
+        move_cursor(up_down, right_left);
 
         int comp = comp_choice();
         if (result[user][comp] == 0) {
@@ -240,7 +245,7 @@ int run(int legacy) {
         }
 
         // color_by_name(box, "left_art", 33);
-        // color_by_name(box, "right_art", 34);
+        // color_by_name(box, "right_art", 33);
 
         if (comp == 0) {
             strcpy(chosed, "rock");
@@ -280,7 +285,7 @@ int run(int legacy) {
         } else {
             darray_update_loc_by_name(box->elements, "win", win_loc, win_loc);
         }
-        // color_by_name(box, "win", 36);
+        color_by_name(box, "win", 33);
         
 
         if (legacy == 0) {
@@ -292,11 +297,17 @@ int run(int legacy) {
         // fix clearing what written [done]
         // make score update [done]
 
+        if (snapshots == 1) {
+            FILE *snap = fopen("snap.txt", "w");
+            legacy_fprint_box(snap, box);
+            fclose(snap);
+        }
+
         // have to decolor and recolor idk how to fix
         // decolor_by_name(box, "left_art");
         // decolor_by_name(box, "right_art");
         // decolor_by_name(box, "chosed");
-        // decolor_by_name(box, "win");
+        decolor_by_name(box, "win");
     }
 
     // printf("hello%d\n", r);
@@ -641,8 +652,15 @@ void themed_print_box(xy_plane *box) {
                 // means its a box
                 // hiden all lines except last for underline
                 for (int j = bloc[0][1]; j < bloc[1][1]; j++) {
-                    hide_lines[nlines] = j;
-                    nlines++;
+                    // check if that dosent already exist
+                    int exist = 0;
+                    for (int k = 0; k < nlines; k++) {
+                        if (hide_lines[k] == j) exist = 1;
+                    }
+                    if (exist == 0) {
+                        hide_lines[nlines] = j;
+                        nlines++;
+                    }
                 }
             }
         }
@@ -692,6 +710,89 @@ void themed_print_box(xy_plane *box) {
     }
 
     // printf("\n");
+}
+
+void legacy_fprint_box(FILE *fp, xy_plane *box) {
+    // print box without any color even elements have it
+    int lines[70];
+    int color_start_val[70];
+    int color_end_val[70];
+    int count = 0;
+
+    // counting where color changes
+    for (int i = 0; i < box->elements->len; i++) {
+        int bloc[2][2]; int loc[2][2];
+        char *name = darray_get(box->elements, i, bloc, loc, NULL);
+        if ( name != NULL ) {
+            int color_flag = *(box->elements->cval + i);
+            int unicode_flag = *(box->elements->uval + i);
+            if (color_flag == 1 && unicode_flag == 1) {
+                // for unicode elements
+                ucode *uc = *(box->elements->u + i);
+                for (int j = 0; j < uc->len; j++) {
+                    uget_bxy(uc, j, bloc);
+                    lines[count] = bloc[0][1];
+                    color_start_val[count] = bloc[0][0] - 5; // -5 for self start color code
+                    color_end_val[count] = bloc[1][0];
+                    count++;
+                }
+            } else if (color_flag == 1) {
+                // for simple elements
+                for (int j = bloc[0][1]; j < bloc[1][1] + 1; j++) {
+                    lines[count] = j;
+                    int inc = calculate_increment(box, j, bloc[0][0]);
+                    color_start_val[count] = bloc[0][0] + inc - 5; // -5 for self start color code
+                    color_end_val[count] = bloc[1][0] + inc;
+                    count++;
+                }
+            }
+        }
+
+    }
+
+    // special cases like red color of quit
+    int note_loc[2][2];
+    if ( darray_get_loc_by_name(box->elements, "note", note_loc, note_loc) != -1 ) {
+        lines[count] = note_loc[0][1];
+        color_start_val[count] = note_loc[1][0] - 5; // -4 for note text and -5 for start color code
+        color_end_val[count] = note_loc[1][0] + 8 - 5;
+        count++;
+    }
+
+    for (int i = 0; i < box->size_y; i++) {
+
+        int match = -1;
+        for (int k = 0; k < count; k++) {
+            if (i == lines[k]) {
+                match = k;
+            }
+        }
+        // if not matched skip iterating thorugh each char
+        if (match == -1) {
+            fprintf(fp, "%s", *(box->rows + i));
+            continue;
+        }
+
+        // printf("%s", *(box->rows + i));
+        for(int j = 0; j < *(box->size_x + i); j++) {
+            char t = *(*(box->rows + i) + j) ;
+
+            int done = 0;
+            // skipping the color codes
+            for(int k = 0; k < count; k++) {
+                if (i == lines[k] && j >= color_start_val[k] && j < color_start_val[k] + 5 ) {
+                    // dont print anything
+                    done = 1;
+                } else if (i == lines[k] && j > color_end_val[k] && j <= color_end_val[k] + 5 ) {
+                    done = 1;
+                }
+            }
+
+            if (done == 0 && t != '\0') {
+                fprintf(fp, "%c", t);
+            }
+        }
+    }
 }
 
 void embed_box(xy_plane *box, int loc[2][2], char *element) {

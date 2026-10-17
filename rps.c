@@ -6,34 +6,18 @@
 #include <windows.h>
 #endif
 
+int init_args(int, char**);
+void usage(char *);
+
 // using window size form ui.c
 extern int size_x, size_y;
 int legacy = 0; // for themed printing
+int snapshots = 0;
 
 int main(int argv, char **argc) {
     // just a start point
-    long int temp_x = 0, temp_y = 0;
-
-    if (argv == 1) {
-    } else if (argv == 2 && strcmp(argc[1], "--legacy") == 0) {
-        legacy = 1;
-    } else if (argv == 3) {
-        temp_x = strtol(argc[1], NULL, 10);
-        temp_y = strtol(argc[2], NULL, 10);
-    } else if (argv == 4 && strcmp(argc[3], "--legacy") == 0 ) {
-        temp_x = strtol(argc[1], NULL, 10);
-        temp_y = strtol(argc[2], NULL, 10);
-        legacy = 1;  // disables themed printing
-    } else {
-        printf("usage : %s [size_x size_y] [--legacy]\n", argc[0]);
-        printf("example : %s 80 27 --legacy\n", argc[0]);
-        printf("      or  %s --legacy\n", argc[0]);
+    if (init_args(argv, argc) == -1) {
         return -1;
-    }
-    
-    if (temp_x != 0 && temp_y != 0) {
-        size_x = temp_x;
-        size_y = temp_y;
     }
 
     #ifdef _WIN32
@@ -67,7 +51,7 @@ int main(int argv, char **argc) {
         return -1;
     }
 
-    run(legacy);
+    run(legacy, snapshots);
 
     #ifdef _WIN32
     CloseHandle(hAlt);
@@ -76,4 +60,69 @@ int main(int argv, char **argc) {
     #endif
 
     return 0;
+}
+
+
+int init_args(int argv, char **argc) {
+    long int temp_x = 0, temp_y = 0;
+
+    int init = 0;
+    if (argv == 1) {
+    } else if (argv == 2) {
+        if ( strcmp(argc[1], "--legacy") == 0) {
+            legacy = 1;  // disables themed printing
+        } else if ( strcmp(argc[1], "--snapshots") == 0) {
+            snapshots = 1; // enable screenshot
+        } else {
+            usage(argc[0]);
+            return -1;
+        }
+    } else if (argv == 3) {
+        temp_x = strtol(argc[1], NULL, 10);
+        temp_y = strtol(argc[2], NULL, 10);
+        if ( strcmp(argc[1], "--legacy") == 0 && strcmp(argc[2], "--snapshots") == 0) {
+            legacy = 1;           
+            snapshots = 1;
+        } else if (temp_x == 0 && temp_y == 0) {
+            usage(argc[0]);
+            return -1;
+        }
+    } else if (argv == 4) {
+        temp_x = strtol(argc[1], NULL, 10);
+        temp_y = strtol(argc[2], NULL, 10);
+        if (strcmp(argc[3], "--legacy") == 0) {
+            legacy = 1;
+        } else if ( strcmp(argc[3], "--snapshots") == 0 ) {
+            snapshots = 1;
+        } else {
+            usage(argc[0]);
+            return -1;
+        }
+    } else if (argv == 5) {
+        temp_x = strtol(argc[1], NULL, 10);
+        temp_y = strtol(argc[2], NULL, 10);
+        if (strcmp(argc[3], "--legacy") == 0 && strcmp(argc[4], "--snapshots") == 0) {
+            legacy = 1;
+            snapshots = 1;
+        } else {
+            usage(argc[0]);
+            return -1;
+        }
+    } else {
+        usage(argc[0]);
+        return -1;
+    }
+    
+    if (temp_x != 0 && temp_y != 0) {
+        size_x = temp_x;
+        size_y = temp_y;
+    }
+
+    return 0;
+}
+
+void usage(char *filename) {
+    printf("usage : %s [size_x size_y] [--legacy] [--snapshots]\n", filename);
+    printf("example : %s 80 27 --legacy --snapshots\n", filename);
+    printf("      or  %s --legacy\n", filename);
 }
