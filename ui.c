@@ -82,17 +82,7 @@ int run(int legacy, int snapshots) {
         return 1;
     }
 
-    printf("\nEnter Player name: ");
-    fgets(Player1, name_len, stdin); // Q: does fgets put \0 at name_len or name_len + 1?
-    Player1[strlen(Player1) - 1] = '\0'; // replaced \n
-    printf("\n");
-
-    if (*Player1 == '\0') {
-        *Player1 = ' ';
-        printf("you skipped the name part;\n\n");
-        fflush(stdout);
-        strcpy(Player1, "Player1");
-    }
+    get_player_name(Player1, name_len);
 
     create_box(box);
 
@@ -182,6 +172,34 @@ int run(int legacy, int snapshots) {
             user = 2;
         } else if (c == 'q' || c == '0') {
             // exit
+            up_down = 1 * (choice_loc[0][1]);
+            move_cursor(up_down - 1, 2); // move cursor to start
+
+            // not so good exit screen
+            for (int i = 0; i < box->len_y; i++) {
+                for (int j = 0; j < *(box->len_x + i) - 1; j++) {
+                    printf("%c", ' ');
+                }
+                printf("\n");
+                move_cursor(0, 2); // just one letter ahead for border
+            }
+
+            up_down = 1 * (box->len_y - choice_loc[0][1] + 1);
+            right_left = 1 * ( center + 1 );
+            move_cursor(up_down, right_left);
+
+            printf("    Thanks for Playing!\n");
+            move_cursor(0, right_left);
+            if (score[0] > score[1]) {
+                printf("You are the final winner. :)");
+            } else {
+                printf("Computer is the final winner.");
+            }
+
+            #ifdef _WIN32
+            Sleep(3500);
+            #endif
+
             free(Player1);
             free(Player2);
             free_arts(arts);
@@ -371,6 +389,32 @@ int normal_style() {
     }
 
     return 0;
+}
+
+void get_player_name(char *name, int name_len) {
+    // read player name from file or stdin
+    FILE *player_file = fopen("player.txt", "r");
+    if (player_file != NULL) {
+        fgets(name, name_len, player_file);
+    } else {
+        printf("\nEnter Player name: ");
+        fgets(name, name_len, stdin); // Q: does fgets put \0 at name_len or name_len + 1?
+        name[strlen(name) - 1] = '\0'; // replaced \n
+        printf("\n");
+
+        if (*name == '\0') {
+            *name = ' ';
+            printf("you skipped the name part;\n\n");
+            // fflush(stdout);
+            strcpy(name, "Player1");
+        }
+        
+        // writing name to file for future use
+        FILE *fp = fopen("player.txt", "w");
+        fprintf(fp, "%s", name);
+        fclose(fp);
+    }
+    fclose(player_file);
 }
 
 int change_terminal_settings(int size_x, int size_y) {

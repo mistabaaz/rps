@@ -31,6 +31,7 @@ struct ascii_art {
 
 int comp_choice();
 int run(int legacy, int snapshots);
+void get_player_name(char *name, int name_len);
 
 xy_plane* gen_xyplane();
 void create_box(xy_plane *box);
