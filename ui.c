@@ -188,7 +188,7 @@ int run(int legacy, int snapshots) {
 
             free(cc); free(chosed); free(win);
 
-            int r = ud_json_file(box->elements);
+            // int r = ud_json_file(box->elements);
             free_box(box);
             return 0;
         } else {
