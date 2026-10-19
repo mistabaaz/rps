@@ -10,6 +10,12 @@ and i saw 22 oct 2025 ..... ahhh......
 one year gone but stil can't complete it due to inconsistency
 */
 
+/*
+whoo hoo i have just released a working version of this game
+and today is 19 oct 2026 still a long time but most things are implemented in this release
+and sad part is my laptop in which i have completed this project is living its last breath
+*/
+
 #include <stdio.h>  // printf(), scanf()
 #include <stdlib.h> // srand(), system()
 #include <string.h> // strcpy(), strlen()
