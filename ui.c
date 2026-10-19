@@ -172,6 +172,12 @@ int run(int legacy, int snapshots) {
             user = 2;
         } else if (c == 'q' || c == '0') {
             // exit
+            if (snapshots == 1) {
+                FILE *snap = fopen("snap.txt", "w");
+                legacy_fprint_box(snap, box);
+                fclose(snap);
+            }
+
             up_down = 1 * (choice_loc[0][1]);
             move_cursor(up_down - 1, 2); // move cursor to start
 
@@ -315,11 +321,6 @@ int run(int legacy, int snapshots) {
         // fix clearing what written [done]
         // make score update [done]
 
-        if (snapshots == 1) {
-            FILE *snap = fopen("snap.txt", "w");
-            legacy_fprint_box(snap, box);
-            fclose(snap);
-        }
 
         // have to decolor and recolor idk how to fix
         // decolor_by_name(box, "left_art");
