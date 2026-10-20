@@ -25,6 +25,17 @@ Windows 10: Version 1511 or newer
 - fixed format string security issues in json export functions
 - fixed memory allocation sizing and double-free in darray cleanup
 
+### Project Structure
+```
+rps/
+├── assets/       # preview images
+├── include/      # header files (art.h, darray.h, ui.h)
+├── src/          # source files (art.c, darray.c, rps.c, ui.c)
+├── gen_exe.bat   # windows build script
+├── gen_exe.sh    # bash build script
+└── readme.md
+```
+
 
 
 ## Special Thanks
