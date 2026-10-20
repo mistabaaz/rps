@@ -20,6 +20,11 @@ Windows 10: Version 1511 or newer
 - [ ]  custom user themes
 - [ ]  new animation styles for opponent choice
 
+### Recent Fixes
+- fixed crash on initial run when player profile is missing
+- fixed format string security issues in json export functions
+- fixed memory allocation sizing and double-free in darray cleanup
+
 
 
 ## Special Thanks
