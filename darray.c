@@ -49,18 +49,19 @@ darray* gen_darray() {
 
 void darray_gen_space(darray *array, int size) {
     // allocate memory without values
-    char **n = realloc(array->names, sizeof (char*) * array->size + size);
-    int ***b = realloc(array->loc, sizeof (int **) * array->size + size);
-    int ***l = realloc(array->loc, sizeof (int **) * array->size + size);
-    int *uv = realloc(array->uval, sizeof (int) * array->size + size);
-    int *cv = realloc(array->cval, sizeof (int) * array->size + size);
-    int *v = realloc(array->values, sizeof (int) * array->size + size);
-    ucode **u = realloc(array->u, sizeof (ucode *) * array->size + size);
-    if (n== NULL || b == NULL || l == NULL || v == NULL || u == NULL || uv == NULL || cv == NULL) {
+    int new_size = array->size + size;
+    char **n = realloc(array->names, sizeof(char*) * new_size);
+    int ***b = realloc(array->bloc, sizeof(int**) * new_size);
+    int ***l = realloc(array->loc, sizeof(int**) * new_size);
+    int *uv = realloc(array->uval, sizeof(int) * new_size);
+    int *cv = realloc(array->cval, sizeof(int) * new_size);
+    int *v = realloc(array->values, sizeof(int) * new_size);
+    ucode **u = realloc(array->u, sizeof(ucode*) * new_size);
+    if (n == NULL || b == NULL || l == NULL || v == NULL || u == NULL || uv == NULL || cv == NULL) {
         printf("\nnames or loc memory not allocated!\n");
         return;
     }
-    for (int i = array->size; i < array->size + size; i++) {
+    for (int i = array->size; i < new_size; i++) {
         *(uv + i) = 0;
         *(cv + i) = 0;
         *(v + i) = 0; // element memory allocated but value not assigned yet
@@ -68,7 +69,7 @@ void darray_gen_space(darray *array, int size) {
     array->names = n;
     array->bloc = b;
     array->loc = l;
-    array->size = array->size + size;
+    array->size = new_size;
     array->uval = uv;
 
     array->cval = cv;
@@ -702,15 +703,12 @@ void darray_clear(darray *array) {
             free(*(*(array->loc + i) + 1));
             free(*(array->loc + i));  // // free location of element
 
-            if ( *(array->u + i) != NULL ) {
-                free(*(array->u + i));
-            }
-
             *(array->cval + i) = 0;
             *(array->values + i) = 0;
         }
-        if (*(array->uval + i) == 1) {
+        if (*(array->uval + i) == 1 && *(array->u + i) != NULL) {
             ucode_free(*(array->u + i));
+            *(array->u + i) = NULL;
             *(array->uval + i) = 0;
         }
     }
