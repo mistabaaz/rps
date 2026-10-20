@@ -33,7 +33,7 @@ int comp_choice();
 int run(int legacy, int snapshots);
 void get_player_name(char *name, int name_len);
 
-xy_plane* gen_xyplane();
+xy_plane* gen_xyplane(int x, int y);
 void create_box(xy_plane *box);
 void print_box(xy_plane *box);
 void fprint_box(FILE *fp, xy_plane *box);

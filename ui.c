@@ -24,6 +24,8 @@ and sad part is my laptop in which i have completed this project is living its l
 #ifdef _WIN32
 #include <windows.h>  // for many internal apis
 #include <conio.h> // for _getch()
+#include <io.h>  // for _open_osfhandle()
+#include <fcntl.h>  // for _O_TEXT
 #endif
 
 #include "darray.h"  // for dynamic string array
@@ -363,6 +365,7 @@ int comp_choice() {
     srand(seed); // for creating randomness using time
 
     int choice = rand() % 3;  // for generating number < 3
+    return choice;
 }
 
 int normal_style() {
@@ -442,10 +445,26 @@ int change_terminal_settings(int size_x, int size_y) {
     if (!SetConsoleMode(hOut, dwMode)) {
         return -1;
     }
+    
+    // redirect stdout to Windows console HANDLE
+    // fix for newer windows version
+
+    // Source - https://stackoverflow.com/a/43776088
+    // Posted by Eryk Sun, modified by community. See post 'Timeline' for change history
+    // Retrieved 2026-10-20, License - CC BY-SA 3.0
+    HANDLE hStd = GetStdHandle(STD_OUTPUT_HANDLE);
+    int fdStd = _open_osfhandle((intptr_t)hStd, _O_TEXT);
+    _dup2(fdStd, fileno(stdout));
+    SetStdHandle(STD_OUTPUT_HANDLE, (HANDLE)_get_osfhandle(fileno(stdout)));
+    _close(fdStd);
+
+    hOut = GetStdHandle(STD_OUTPUT_HANDLE);  // refresh the handle
+
 
     // Output mode : CP_UTF8 or system(chcp 65001);
     SetConsoleOutputCP(65001);
     SetConsoleTitle("mrps");
+    Sleep(200); // to find window
 
     HWND handle = FindWindow(NULL, "mrps");
     if (handle == NULL) {
@@ -469,22 +488,23 @@ int change_terminal_settings(int size_x, int size_y) {
 
     int padding_x = 10 * p_width;
     int padding_y = 3 * p_height;
-    SetWindowPos(handle, NULL, padding_x, padding_y, pixel_x, pixel_y, SWP_NOZORDER);
+    // SetWindowPos(handle, NULL, padding_x, padding_y, pixel_x, pixel_y, SWP_NOZORDER);
 
     // another way to set window size
-    // SMALL_RECT sr = {.Right = size_x + 0, .Left = 0, .Top = 0, .Bottom = size_y + 0};
-    // SetConsoleWindowInfo(hOut, TRUE, &sr);
+    SMALL_RECT sr = {.Right = size_x + 0, .Left = 0, .Top = 0, .Bottom = size_y + 0};
+    SetConsoleWindowInfo(hOut, TRUE, &sr);
     ReleaseDC(NULL, hDC);
 
     // get buffer size and re apply it to disable scroll bar
     COORD c;
     CONSOLE_SCREEN_BUFFER_INFO csbi;
-    GetConsoleScreenBufferInfo(hOut, &csbi);
+    BOOL ok = GetConsoleScreenBufferInfo(hOut, &csbi);
+    if (!ok) printf("cant get screen size!\n");
     c.X = csbi.srWindow.Right - csbi.srWindow.Left + 1;
     c.Y = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
-    BOOL ok = SetConsoleScreenBufferSize(hOut, c);
-    // ok = ShowScrollBar(handle, SB_VERT, 0);
-    // if (!ok) printf("cant disable scroll bar!\n");
+    ok = SetConsoleScreenBufferSize(hOut, c);
+    ok = ShowScrollBar(handle, SB_VERT, 0);
+    if (!ok) printf("cant disable scroll bar!\n");
 
     // another way system(change_size);
     // char change_size[50];
@@ -740,14 +760,14 @@ void themed_print_box(xy_plane *box) {
             } else if ( t == '+' && j == *(box->size_x + i) - 3 && i == box->size_y - 1) {
                 printf("\u256F");
             } else if ( t == '+' && j == 0) {
-                printf(" \u256D");
+                printf("\u256D");
             } else if ( t == '+' && j == (*(box->size_x + i) - 3)) {
                 printf("\u256E");
             } else if ( t == '-' && done == 0) {
                 printf("\u2500");
             } else if ( t  == '|' && done == 0) {
                 printf("\u2502");
-            } else if (done == 0) {
+            } else if (done == 0 && t != '\0') {
                 printf("%c", t);
             }
 
