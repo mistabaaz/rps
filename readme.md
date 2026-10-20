@@ -20,6 +20,16 @@ Windows 10: Version 1511 or newer
 - [ ]  custom user themes
 - [ ]  new animation styles for opponent choice
 
+### Project Structure
+```
+rps/
+├── assets/       # preview images
+├── include/      # header files (art.h, darray.h, ui.h)
+├── src/          # source files (art.c, darray.c, rps.c, ui.c)
+├── gen_exe.bat   # windows build script
+├── gen_exe.sh    # bash build script
+└── readme.md
+```
 
 
 ## Special Thanks
