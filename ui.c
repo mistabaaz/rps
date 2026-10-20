@@ -405,11 +405,23 @@ void get_player_name(char *name, int name_len) {
     // read player name from file or stdin
     FILE *player_file = fopen("player.txt", "r");
     if (player_file != NULL) {
-        fgets(name, name_len, player_file);
+        if (fgets(name, name_len, player_file) != NULL) {
+            size_t len = strlen(name);
+            if (len > 0 && name[len - 1] == '\n') {
+                name[len - 1] = '\0';
+            }
+        }
+        fclose(player_file);
     } else {
         printf("\nEnter Player name: ");
-        fgets(name, name_len, stdin); // Q: does fgets put \0 at name_len or name_len + 1?
-        name[strlen(name) - 1] = '\0'; // replaced \n
+        if (fgets(name, name_len, stdin) != NULL) {
+            size_t len = strlen(name);
+            if (len > 0 && name[len - 1] == '\n') {
+                name[len - 1] = '\0';
+            }
+        } else {
+            *name = '\0';
+        }
         printf("\n");
 
         if (*name == '\0') {
@@ -421,10 +433,11 @@ void get_player_name(char *name, int name_len) {
         
         // writing name to file for future use
         FILE *fp = fopen("player.txt", "w");
-        fprintf(fp, "%s", name);
-        fclose(fp);
+        if (fp != NULL) {
+            fprintf(fp, "%s", name);
+            fclose(fp);
+        }
     }
-    fclose(player_file);
 }
 
 int change_terminal_settings(int size_x, int size_y) {
