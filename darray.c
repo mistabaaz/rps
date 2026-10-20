@@ -1053,7 +1053,7 @@ int darray_json_file(darray *array) {
         printf("\ntout.json file cannot be opened in written mode!!\n");
         return 0;
     }
-    int r = fprintf(fp, s);
+    int r = fprintf(fp, "%s", s);
     if (r < 0) {
         printf("\njson data cannot be written to file!\n");
         return 0;
@@ -1254,7 +1254,7 @@ int ucode_json_file(ucode *uc) {
         printf("\ntout2.json file cannot be opened in written mode!!\n");
         return 0;
     }
-    int r = fprintf(fp, s);
+    int r = fprintf(fp, "%s", s);
     if (r < 0) {
         printf("\nt2 json data cannot be written to file!\n");
         return 0;
@@ -1274,7 +1274,7 @@ int ud_json_file(darray *array) {
         return 0;
     }
     int r = fprintf(fp, "[\n\n");
-    r += fprintf(fp, s);
+    r += fprintf(fp, "%s", s);
     r += fprintf(fp, ",\n");
     if (r < 0) {
         printf("\n3 json data cannot be written to file!\n");
@@ -1285,7 +1285,7 @@ int ud_json_file(darray *array) {
             ucode *uc = *(array->u + i);
             char *t = ucode_json_string(uc);
             r += fprintf(fp, "\n");
-            r += fprintf(fp, t);
+            r += fprintf(fp, "%s", t);
             r += fprintf(fp, ",\n");
             free(t);
         }
