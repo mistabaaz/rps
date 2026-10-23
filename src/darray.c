@@ -162,7 +162,7 @@ char* darray_get(darray *array, int pos, int bloc[2][2], int loc[2][2], ucode *u
         printf("\nindex=%d is out of array size=%d\n", pos, array->size - 1);
         return NULL;
     } else if (*(array->values + pos) != 1) {
-        printf("\nindex=%d dosen't have any value\n", pos, array->size - 1);
+        printf("\nindex=%d dosen't have any value\n", pos);
         return NULL;
     } else {
         get_bxy(array, pos, bloc);
@@ -434,7 +434,7 @@ void darray_pop(darray *array, int pos) {
         printf("\nindex=%d is out of array size=%d\n", pos, array->size - 1);
         return;
     } else if (*(array->values + pos) != 1) {
-        printf("\nindex=%d is dosen't have any value\n", pos, array->size - 1);
+        printf("\nindex=%d is dosen't have any value\n", pos);
         return;
     } else {
         free(*(array->names + pos));
@@ -485,7 +485,7 @@ void darray_update_loc(darray *array, int pos, int bloc[2][2], int loc[2][2]) {
         printf("\nindex=%d is out of array size=%d\n", pos, array->size - 1);
         return;
     } else if (*(array->values + pos) != 1) {
-        printf("\nindex=%d is dosen't have any value\n", pos, array->size - 1);
+        printf("\nindex=%d is dosen't have any value\n", pos);
         return;
     } else {
         set_bxy(array, pos, bloc);
@@ -512,7 +512,7 @@ void darray_update_ucode(darray *array, int pos, ucode *uc) {
         printf("\nindex=%d is out of array size=%d\n", pos, array->size - 1);
         return;
     } else if (*(array->values + pos) != 1) {
-        printf("\nindex=%d is dosen't have any value\n", pos, array->size - 1);
+        printf("\nindex=%d is dosen't have any value\n", pos);
         return;
     } else {
         if ( *(array->u + pos) !=NULL ) {
@@ -571,7 +571,7 @@ void darray_replace(darray *array, int pos, char *element, int bloc[2][2], int l
         printf("\nindex=%d is out of array size=%d\n", pos, array->size - 1);
         return;
     } else if (*(array->values + pos) != 1) {
-        printf("\nindex=%d is dosen't have any value\n", pos, array->size - 1);
+        printf("\nindex=%d is dosen't have any value\n", pos);
         return;
     } else {
         char *temp = malloc(strlen(element) + 1);
@@ -594,7 +594,7 @@ void darray_replace_name(darray *array, int pos, char *element) {
         printf("\nindex=%d is out of array size=%d\n", pos, array->size - 1);
         return;
     } else if (*(array->values + pos) != 1) {
-        printf("\nindex=%d is dosen't have any value\n", pos, array->size - 1);
+        printf("\nindex=%d is dosen't have any value\n", pos);
         return;
     } else {
         char *temp = malloc(strlen(element) + 1);
@@ -655,10 +655,10 @@ void darray_swap(darray *array, int p1, int p2) {
         printf("\nindex=%d is out of array size=%d\n", p2, array->size - 1);
         return;
     } else if (*(array->values + p1) != 1) {
-        printf("\nindex=%d is dosen't have any value\n", p1, array->size - 1);
+        printf("\nindex=%d is dosen't have any value\n", p1);
         return;
     } else if (*(array->values + p2) != 1) {
-        printf("\nindex=%d is dosen't have any value\n", p2, array->size - 1);
+        printf("\nindex=%d is dosen't have any value\n", p2);
         return;
     } else {
         // firsts swaping element names

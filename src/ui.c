@@ -28,6 +28,11 @@ and sad part is my laptop in which i have completed this project is living its l
 #include <fcntl.h>  // for _O_TEXT
 #endif
 
+#ifdef __linux__
+#include <termios.h>    //termios, TCSANOW, ECHO, ICANON
+#include <unistd.h>     //STDIN_FILENO
+#endif
+
 #include "darray.h"  // for dynamic string array
 #include "art.h"     // for ascii art
 #include "ui.h"      // for design
@@ -169,6 +174,35 @@ int run(int legacy, int snapshots) {
         int c = _getch(); // instead disable canonical mode
         #endif
 
+	#ifdef __linux__
+	// Source - https://stackoverflow.com/a/1798833
+	// Posted by Lucas, modified by community. See post 'Timeline' for change history
+	// Retrieved 2026-10-23, License - CC BY-SA 3.0
+
+        int c;   
+    	static struct termios oldt, newt;
+
+	/*tcgetattr gets the parameters of the current terminal
+	STDIN_FILENO will tell tcgetattr that it should write the settings
+	of stdin to oldt*/
+	tcgetattr( STDIN_FILENO, &oldt);
+	/*now the settings will be copied*/
+	newt = oldt;
+
+	/*ICANON normally takes care that one line at a time will be processed
+	that means it will return if it sees a "\n" or an EOF or an EOL*/
+	newt.c_lflag &= ~(ICANON);          
+
+	/*Those new settings will be set to STDIN
+	TCSANOW tells tcsetattr to change attributes immediately. */
+	tcsetattr( STDIN_FILENO, TCSANOW, &newt);
+
+	c=getchar();
+
+	/*restore the old settings*/
+	tcsetattr( STDIN_FILENO, TCSANOW, &oldt);
+	#endif
+
         int user;
         if ( c == 'r' || c == '1') {
             // char chosen[] = "you choosed rps!";
@@ -203,16 +237,18 @@ int run(int legacy, int snapshots) {
             move_cursor(up_down, right_left);
 
             printf("    Thanks for Playing!\n");
-            move_cursor(0, right_left);
+            move_cursor(-1, right_left);
             if (score[0] > score[1]) {
-                printf("You are the final winner. :)");
+                printf("You are the final winner. :)\n");
             } else {
-                printf("Computer is the final winner.");
+                printf("Computer is the final winner\n.");
             }
 
             #ifdef _WIN32
             Sleep(3500);
-            #endif
+            #elif __linux__
+	    sleep(3);
+	    #endif
 
             free(Player1);
             free(Player2);
@@ -259,10 +295,10 @@ int run(int legacy, int snapshots) {
             inc2 -= 5;  // -5 for self color
         }
 
-        snprintf(scr, 2, "%d", score[0]);
+        snprintf(scr, 3, "%d", score[0]);
         write_line(box, nbox_loc[1][0] + inc1 - 2, nbox_loc[1][0] + inc1, nbox_loc[0][1], scr);
 
-        snprintf(scr, 2, "%d", score[1]);
+        snprintf(scr, 3, "%d", score[1]);
         write_line(box, nbox_loc[1][0] + inc2 - 2, nbox_loc[1][0] + inc2, nbox_loc[1][1], scr);
 
         struct art_couple a;
@@ -348,7 +384,7 @@ int user_choice() {
     printf("\n\t1 Rock\n\t2 Paper\n\t3 Scissor\n");
     printf("\nEnter 4 to quit:");
     scanf("%u", &choice);
-    getchar(); // to overcome \n issue
+    // getchar(); // to overcome \n issue
     printf("\n");
 
     if (choice > 4) {
@@ -553,6 +589,12 @@ int change_terminal_settings(int size_x, int size_y) {
 
     // thought of dynamic resize but its too much work & isnt consistent
     #endif
+
+    // resize terminal size using escape seq
+    #ifndef _WIN32
+    printf("\x1b[8;%d;%dt", size_y, size_x);
+    #endif
+
     return 0;
 }
 
@@ -679,6 +721,7 @@ void fprint_box(FILE *fp, xy_plane *box) {
 void themed_print_box(xy_plane *box) {
     // printing box with a theme
 
+    printf("\n");
     // changing background color
     char *background = "\x1b[48;5;237m";
     printf("%s", background);

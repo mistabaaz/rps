@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h> // for strtol()
 #include "darray.h"
 #include "ui.h"
 
@@ -45,6 +46,11 @@ int main(int argv, char **argc) {
     // SetStdHandle(STD_INPUT_HANDLE, hAlt);
     #endif
 
+    // switching to alternate buffer using escape code
+    #ifndef _WIN32
+    printf("\x1b[?1049h");
+    #endif
+
     int val = change_terminal_settings(size_x, size_y);
     if (val == -1) {
         printf("can't enable vt-100 escap sequence!\n");
@@ -57,6 +63,11 @@ int main(int argv, char **argc) {
     CloseHandle(hAlt);
     SetConsoleActiveScreenBuffer(hOut);
     SetStdHandle(STD_OUTPUT_HANDLE, hOut);
+    #endif
+
+    // restoring alternate buffer
+    #ifndef _WIN32
+    printf("\x1b[?1049l");
     #endif
 
     return 0;
