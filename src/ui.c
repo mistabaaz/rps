@@ -592,7 +592,7 @@ int change_terminal_settings(int size_x, int size_y) {
 
     // resize terminal size using escape seq
     #ifndef _WIN32
-    printf("\x1b[8;%d;%dt", size_y, size_x);
+    printf("\x1b[8;%d;%dt", size_y + 2, size_x + 2);
     #endif
 
     return 0;

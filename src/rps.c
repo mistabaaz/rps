@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h> // for strtol()
+#include <string.h> // for strcmp()
 #include "darray.h"
 #include "ui.h"
 
